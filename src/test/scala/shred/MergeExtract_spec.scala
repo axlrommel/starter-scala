@@ -15,7 +15,13 @@ class JSONExtract_spec extends FlatSpec {
   implicit val formats = DefaultFormats
   val sampleP = new SampleProgram()
   val sampleM = new SampleMessages()
-  val utcZoneId = ZoneId.of("UTC")
+  val zonedDateTime = ZonedDateTime.parse("2012-06-30T12:30:40Z[UTC]") //.now for right now
+  val utcDateTime = zonedDateTime.withZoneSameInstant(ZoneId.of("UTC"))
+  val timestamp = utcDateTime
+    .toString()
+    .substring(0, utcDateTime.toString().length - "[UTC]".length)
+  val header = ("messageHeader" -> ("messageUUId" -> UUID(1, 2).string) ~ ("messageTimestamp" -> timestamp) ~
+    ("messageProducer" -> "Company360.DARTExtracter"))
 
   it should "make sure JSON is not null" in {
     val extractedProgram = sampleP.getSampleProgram().extract[Program]
@@ -59,14 +65,6 @@ class JSONExtract_spec extends FlatSpec {
 
     val scopes = (sampleP.getSampleProgram() \ "scopes").extract[List[Scope]]
     for (scope <- scopes) {
-      val uuid = UUID(1, 2) //.random for random
-      val zonedDateTime = ZonedDateTime.parse("2012-06-30T12:30:40Z[UTC]") //.now for right now
-      val utcDateTime = zonedDateTime.withZoneSameInstant(utcZoneId)
-      val timestamp = utcDateTime
-        .toString()
-        .substring(0, utcDateTime.toString().length - "[UTC]".length)
-      val header = ("messageHeader" -> ("messageUUId" -> uuid.string) ~ ("messageTimestamp" -> timestamp) ~
-        ("messageProducer" -> "Company360.DARTExtracter"))
       val currScope = parse(write(scope)) merge render(header)
       assert(write(currScope) == write(sampleM.getScopePlusHeader()))
     }
@@ -77,16 +75,7 @@ class JSONExtract_spec extends FlatSpec {
     val components =
       (sampleP.getSampleProgram() \ "components").extract[List[Component]]
     for (component <- components) {
-      val uuid = UUID(1, 2) //.random when not in test
-      val zonedDateTime = ZonedDateTime.parse("2012-06-30T12:30:40Z[UTC]") //.now when not in test
-      val utcDateTime = zonedDateTime.withZoneSameInstant(utcZoneId)
-      val timestamp = utcDateTime
-        .toString()
-        .substring(0, utcDateTime.toString().length - "[UTC]".length)
-      val header = ("messageHeader" -> ("messageUUId" -> uuid.string) ~ ("messageTimestamp" -> timestamp) ~
-        ("messageProducer" -> "Company360.DARTExtracter"))
       val currComponent = parse(write(component)) merge render(header)
-      println(write(component))
       assert(currComponent.extract[ComponentOutbound] != null)
       assert(
         write(currComponent) == write(sampleM.getComponent1PlusHeader()) ||
