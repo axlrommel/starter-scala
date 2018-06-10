@@ -18,6 +18,12 @@ class Funcs_spec extends FlatSpec {
 
   def addIds(us: Seq[User]) = us.map(_.id).reduceLeft(_ + _)
 
+  def checkUserStatusAllActive(us: Seq[User]) =
+    us.map(_.active).reduceLeft(_ && _)
+
+  def checkUserStatusAnyActive(us: Seq[User]) =
+    us.map(_.active).reduceLeft(_ || _)
+    
   def lowerCaseNames(us: Seq[User]) =
     us.map(e =>
       User(e.id, e.firstname.toLowerCase(), e.lastname.toLowerCase(), e.active))
@@ -39,5 +45,15 @@ class Funcs_spec extends FlatSpec {
     assert(usersLowerCased.length == 3)
     assert(usersLowerCased(0).lastname == "smith")
     assert(usersLowerCased(1).firstname == "ken")
+  }
+
+  it should "check if all users are active" in {
+    val usersActive = checkUserStatusAllActive(testUserSeq)
+    assert(usersActive == false)
+  }
+
+  it should "check if any users are active" in {
+    val usersActive = checkUserStatusAnyActive(testUserSeq)
+    assert(usersActive == true)
   }
 }
