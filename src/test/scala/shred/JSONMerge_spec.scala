@@ -40,6 +40,7 @@ class JSONMerge_spec extends FlatSpec {
       }
     }""")
     val mergedLotto = lotto1 merge lotto2
+    //println(pretty(render(mergedLotto)))
     assert(mergedLotto == mergedResult)
   }
 
